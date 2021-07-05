@@ -1,5 +1,6 @@
-# DCP
+# DCP-DEC
 Implementation for DCP-DEC model.
+
 Paper: Deep Embedded Clustering with Distribution Consistency Preservation for Attributed Networks
 
 # Data
