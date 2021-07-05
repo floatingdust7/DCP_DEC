@@ -22,7 +22,9 @@ python runDCP.py --name lfr100060 --alpha 0.1 --beta 0.01 --gamma 0.5
 # Acknowledgement
 The baseline models and the reference codes are as below:
 D. Bo, X. Wang, C. Shi, et al. Structural Deep Clustering Network. In WWW, 2020.
+
 --https://github.com/bdy9527/SDCN
 
 W. Tu, S. Zhou, X. Liu, X. Guo, Z. Cai, E. zhu, and J. Cheng. In AAAi 2021.
+
 --https://github.com/WxTu/DFCN
