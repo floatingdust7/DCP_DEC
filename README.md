@@ -4,7 +4,7 @@ Implementation for DCP-DEC model.
 Paper: Deep Embedded Clustering with Distribution Consistency Preservation for Attributed Networks
 
 # Data
-Due to the limitation of file size, we give some examples of the real-word datasets and the generated artificial attributed networks.
+Due to the limitation of file size, we give some examples of the real-word datasets (ACM and USPS) and the generated artificial attributed networks (μ=0.6 and μ=0.8 with noise ratio 20%).
 
 # Code & Usage
 Here we provide an implementation in PyTorch, along with an execution example on an artificial attributed network (with μ=0.6 & noise ratio is 20%)(due to file size limit). The repository is organised as follows:
