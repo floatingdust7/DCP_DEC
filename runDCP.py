@@ -15,10 +15,10 @@ from models import AE, GAE
 torch.cuda.set_device(0)
 
 
-class SDCN(nn.Module):
+class DCP_DEC(nn.Module):
     def __init__(self, n_enc_1, n_enc_2, n_dec_1, n_dec_2, n_input, n_z,
                  n_clusters, v=1):
-        super(SDCN, self).__init__()
+        super(DCP_DEC, self).__init__()
 
         # autoencoder for intra information
         self.ae = AE(n_enc_1=n_enc_1,
@@ -67,9 +67,9 @@ def target_distribution(q):
     return (weight.t() / weight.sum(1)).t()
 
 
-def train_sdcn(dataset):
-    model = SDCN(512, 256, 256, 512, n_input=args.n_input, n_z=args.n_z,
-                 n_clusters=args.n_clusters, v=1.0).to(device)
+def train_dcp(dataset):
+    model = DCP_DEC(512, 256, 256, 512, n_input=args.n_input, n_z=args.n_z,
+                    n_clusters=args.n_clusters, v=1.0).to(device)
     print(model)
     optimizer = Adam(model.parameters(), lr=args.lr)
 
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     print(args)
 
     print("Start training...............")
-    result_qgcn, result_qdnn = train_sdcn(dataset)
+    result_qgcn, result_qdnn = train_dcp(dataset)
     print(".........................")
     print("The result of Q-GAE:")
     print(result_qgcn)
