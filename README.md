@@ -35,7 +35,7 @@ python runDCP_lfr.py --name lfr100060 --alpha 0.1 --beta 0.01 --gamma 0.5
 
 # Parameters setting
 
-|  Dataset |     AE-hidden       | GAE-hidden    | Epoch |   Lr  | alpha | beta | gamma | rae |
+|  Dataset |     AE-enc          | GAE-enc       | Epoch |   Lr  | alpha | beta | gamma | rae |
 |:--------:|:-------------------:|:-------------:|:-----:|:-----:|:-----:|:----:|:-----:|:-------:|
 | Citeseer |        256-64       |     256-64    |  200  | 0.001 |  0.75 |  0.1 |   1   |    1    |
 |   Cora   |        256-64       |     256-64    |  200  | 0.001 |  0.15 | 0.25 |  0.7  |    40   |
