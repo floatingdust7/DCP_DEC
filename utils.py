@@ -8,15 +8,20 @@ def load_graph(dataset, k):
     if k:
         path = 'data/{}{}_graph.txt'.format(dataset, k)
     else:
-        path = './data/{}.txt'.format(dataset)
-    print(path)
-    data = np.loadtxt('data/{}_att2.txt'.format(dataset))
+        path = 'data/{}_graph.txt'.format(dataset)
+    print('Loading {} dataset from {}...'.format(dataset, path))
+
+    data = np.loadtxt('data/{}.txt'.format(dataset))
     n, _ = data.shape
+    labels = np.loadtxt('data/{}_label.txt'.format(dataset), dtype=int)
+    if dataset in ['cite', 'pubmed', 'hhar']:
+        labels = labels - 1    # hhar and pubmed, cite
 
     idx = np.array([i for i in range(n)], dtype=np.int32)
     idx_map = {j: i for i, j in enumerate(idx)}
     edges_unordered = np.genfromtxt(path, dtype=np.int32)
-    edges_unordered = edges_unordered - 1    ## only for lfr and pubmed
+    if dataset == 'pubmed':
+        edges_unordered = edges_unordered - 1    # # only for lfr and pubmed
 
     edges = np.array(list(map(idx_map.get, edges_unordered.flatten())),
                      dtype=np.int32).reshape(edges_unordered.shape)
@@ -29,7 +34,7 @@ def load_graph(dataset, k):
     adj = normalize(adj)
     adj = sparse_mx_to_torch_sparse_tensor(adj)
 
-    return adj
+    return adj, data, labels
 
 
 def normalize(mx):
@@ -50,33 +55,4 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     values = torch.from_numpy(sparse_mx.data)
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
-
-
-class load_data(Dataset):
-    def __init__(self, dataset):
-        self.x = np.loadtxt('data/{}_att2.txt'.format(dataset), dtype=int)
-        self.y = np.loadtxt('data/{}_label.txt'.format(dataset), dtype=int)
-        self.y = self.y[:, 1] - 1    # only for lfr
-
-        # self.y = self.y - 1   # for hhar, cite, pubmed
-
-    def __len__(self):
-        return self.x.shape[0]
-
-    def __getitem__(self, idx):
-        return torch.from_numpy(np.array(self.x[idx])),\
-               torch.from_numpy(np.array(self.y[idx])),\
-               torch.from_numpy(np.array(idx))
-
-
-class LoadDataset(Dataset):
-    def __init__(self, data):
-        self.x = data
-
-    def __len__(self):
-        return self.x.shape[0]
-
-    def __getitem__(self, idx):
-        return torch.from_numpy(np.array(self.x[idx])).float(), \
-               torch.from_numpy(np.array(idx))
 

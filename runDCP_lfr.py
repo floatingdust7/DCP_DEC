@@ -8,27 +8,53 @@ import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.cluster import KMeans
 from torch.nn.parameter import Parameter
+from torch.nn import Linear
 from torch.optim import Adam
 from evaluation import eva
-from utils import load_graph
-from models import AE, GAE
+from utils_lfr import load_lfr
+from models import GAE
 import numpy as np
 
 
+class AE(nn.Module):
+
+    def __init__(self, n_enc_1, n_enc_2, n_dec_1, n_dec_2,
+                 n_input, n_z):
+        super(AE, self).__init__()
+        self.enc_1 = Linear(n_input, n_enc_1)
+        self.enc_2 = Linear(n_enc_1, n_enc_2)
+        self.z_layer = Linear(n_enc_2, n_z)
+
+        self.dec_1 = Linear(n_z, n_dec_1)
+        self.dec_2 = Linear(n_dec_1, n_dec_2)
+        self.x_bar_layer = Linear(n_dec_2, n_input)
+
+    def forward(self, x):
+        enc_h1 = F.relu(self.enc_1(x))
+        enc_h2 = F.relu(self.enc_2(enc_h1))
+        z = self.z_layer(enc_h2)
+
+        dec_h1 = F.relu(self.dec_1(z))
+        dec_h2 = F.relu(self.dec_2(dec_h1))
+        x_bar = self.x_bar_layer(dec_h2)
+
+        return x_bar, z
+
+
 class DCP_DEC(nn.Module):
-    def __init__(self, n_enc_1, n_dec_1, n_input, n_z,
+    def __init__(self, n_enc_1, n_enc_2, n_dec_1, n_dec_2, n_input, n_z,
                  n_clusters, v=1):
         super(DCP_DEC, self).__init__()
 
         # autoencoder for intra information
-        self.ae = AE(n_enc_1=n_enc_1, n_dec_1=n_dec_1, n_input=n_input, n_z=n_z)
+        self.ae = AE(n_enc_1=n_enc_1, n_enc_2=n_enc_2, n_dec_1=n_dec_1, n_dec_2=n_dec_2, n_input=n_input, n_z=n_z)
         self.ae.load_state_dict(torch.load(args.dnn_pretrain_path, map_location='cpu'))
         # cluster layer
         self.dnn_cluster_layer = Parameter(torch.Tensor(n_clusters, n_z))
         torch.nn.init.xavier_normal_(self.dnn_cluster_layer.data)
 
         # GCN for inter information
-        self.gae = GAE(input_feat_dim=n_input, hidden_dim1=512, n_z=n_z)
+        self.gae = GAE(input_feat_dim=n_input, hidden_dim1=256, n_z=n_z)
         self.gae.load_state_dict(torch.load(args.gcn_pretrain_path, map_location='cpu'))
         # cluster layer
         self.gcn_cluster_layer = Parameter(torch.Tensor(n_clusters, n_z))
@@ -127,38 +153,37 @@ def train_dcp(model, adj, data, y):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--name', type=str, default='acm')
+    parser.add_argument('--name', type=str, default='lfr100060')
     parser.add_argument('--gpu', type=int, default=1)
-    parser.add_argument('--k', type=int, default=None)
     parser.add_argument('--lr', type=float, default=1e-3)
-    parser.add_argument('--epochs', type=int, default=500)
+    parser.add_argument('--epochs', type=int, default=1000)
     parser.add_argument('--n_z', default=64, type=int)
     parser.add_argument('--pretrain_path', type=str, default='pkl')
-    parser.add_argument('--alpha', type=float, default=1)
-    parser.add_argument('--beta', type=float, default=1)
-    parser.add_argument('--gamma', type=float, default=1)
+    parser.add_argument('--alpha', type=float, default=0.1)
+    parser.add_argument('--beta', type=float, default=0.01)
+    parser.add_argument('--gamma', type=float, default=0.5)
     parser.add_argument('--rae', type=int, default=1)
     args = parser.parse_args()
-    print(args)
 
     torch.cuda.set_device(args.gpu)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("use cuda: {}".format(device))
 
-    args.dnn_pretrain_path = './pretrain/{}_ae.pkl'.format(args.name)
-    args.gcn_pretrain_path = './pretrain/{}_gae.pkl'.format(args.name)
+    args.dnn_pretrain_path = './pretrain/lfratt/{}_att2_512-256-64.pkl'.format(args.name)
+    args.gcn_pretrain_path = './pretrain/lfratt/{}_att2_gcn2.pkl'.format(args.name)
 
     np.random.seed(0)
     torch.manual_seed(0)
 
     # A / KNN Graph, feature and label
-    adj, feature, label = load_graph(args.name, args.k)
+    # datapath = 'data/lfratt/lfrmiu6/'
+    adj, feature, label = load_lfr('data', args.name)
     adj = adj.to(device)
     feature = torch.FloatTensor(feature).to(device)
     n_input = feature.shape[1]
     n_clusters = label.max() + 1
 
-    model = DCP_DEC(512, 512, n_input=n_input, n_z=args.n_z, n_clusters=n_clusters, v=1).to(device)
+    model = DCP_DEC(512, 256, 256, 512, n_input=n_input, n_z=args.n_z, n_clusters=n_clusters, v=1).to(device)
 
     print("Start training...............")
     result_qgcn, result_qdnn = train_dcp(model, adj, feature, label)

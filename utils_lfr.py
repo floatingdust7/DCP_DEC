@@ -17,24 +17,22 @@ def encode_onehot(labels):
     return labels_onehot
 
 
-def load_data(path="data/", dataset="lfr100060"):
+def load_lfr(path, dataset):
     """Load network dataset """
-    print('Loading {} dataset...'.format(dataset))
+    print('Loading {} dataset from {}...'.format(dataset, path))
 
-    # load cite and lfr
-    features = np.loadtxt("{}{}_att2.txt".format(path, dataset), dtype=np.float32)
+    # load lfr
+    features = np.loadtxt('{}{}_att2.txt'.format(path, dataset), dtype=int)
     features = torch.FloatTensor(np.array(features))
-    labels = np.loadtxt("{}{}_label.txt".format(path, dataset), dtype=np.int32)
-    labels = labels[:, 1] - 1   # for lfr
-    # labels = labels - 1    # hhar and pubmed, cite
+    labels = np.loadtxt('{}{}_label.txt'.format(path, dataset), dtype=int)
+    labels = labels[:, 1] - 1   # only for LFR network
     n, _ = features.shape
 
     # build adj
     idx = np.array([i for i in range(n)], dtype=np.int32)
     idx_map = {j: i for i, j in enumerate(idx)}
-    edges_unordered = np.genfromtxt("{}{}.txt".format(path, dataset),
-                                    dtype=np.int32)
-    edges_unordered = edges_unordered - 1    # only for lfr networks and pubmed
+    edges_unordered = np.genfromtxt('{}{}.txt'.format(path, dataset), dtype=np.int32)
+    edges_unordered = edges_unordered - 1    # only for lfr networks
 
     edges = np.array(list(map(idx_map.get, edges_unordered.flatten())),
                      dtype=np.int32).reshape(edges_unordered.shape)
@@ -46,7 +44,7 @@ def load_data(path="data/", dataset="lfr100060"):
     adj = normalize(adj + sp.eye(adj.shape[0]))
     adj = sparse_mx_to_torch_sparse_tensor(adj)
 
-    return adj, features
+    return adj, features, labels
 
 
 def normalize(mx):

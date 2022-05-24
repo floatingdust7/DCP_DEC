@@ -8,25 +8,25 @@ from layers import GraphConvolution
 
 class AE(nn.Module):
 
-    def __init__(self, n_enc_1, n_enc_2, n_dec_1, n_dec_2,
+    def __init__(self, n_enc_1, n_dec_1,
                  n_input, n_z):
         super(AE, self).__init__()
         self.enc_1 = Linear(n_input, n_enc_1)
-        self.enc_2 = Linear(n_enc_1, n_enc_2)
-        self.z_layer = Linear(n_enc_2, n_z)
+        # self.enc_2 = Linear(n_enc_1, n_enc_2)
+        self.z_layer = Linear(n_enc_1, n_z)
 
         self.dec_1 = Linear(n_z, n_dec_1)
-        self.dec_2 = Linear(n_dec_1, n_dec_2)
-        self.x_bar_layer = Linear(n_dec_2, n_input)
+        # self.dec_2 = Linear(n_dec_1, n_dec_2)
+        self.x_bar_layer = Linear(n_dec_1, n_input)
 
     def forward(self, x):
         enc_h1 = F.relu(self.enc_1(x))
-        enc_h2 = F.relu(self.enc_2(enc_h1))
-        z = self.z_layer(enc_h2)
+        # enc_h2 = F.relu(self.enc_2(enc_h1))
+        z = self.z_layer(enc_h1)
 
         dec_h1 = F.relu(self.dec_1(z))
-        dec_h2 = F.relu(self.dec_2(dec_h1))
-        x_bar = self.x_bar_layer(dec_h2)
+        # dec_h2 = F.relu(self.dec_2(dec_h1))
+        x_bar = self.x_bar_layer(dec_h1)
 
         return x_bar, z
 
@@ -54,7 +54,8 @@ class GAE(nn.Module):
 
     def forward(self, x, adj):
         hidden1 = F.relu(self.gc1(x, adj))
-        z = F.relu(self.gz(hidden1, adj))
+        # z = F.relu(self.gz(hidden1, adj))
+        z = self.gz(hidden1, adj)
 
         a_bar = self.dc(z)
 

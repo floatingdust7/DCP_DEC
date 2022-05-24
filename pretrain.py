@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 from sklearn.cluster import KMeans
 from evaluation import eva
 from models import AE, GAE
-from utils_pre import load_data
+from utils import load_graph
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 
@@ -55,7 +55,6 @@ def pretrain_ae(model, dataset, y):
         total_loss.append(loss.data.cpu().tolist())
         torch.save(model.state_dict(), "{}_ae.pkl".format(savepath))
 
-    print(acc_list)
     print(max(acc_list))
     xrange = range(0, 50)
     plt.plot(xrange, total_loss, 'o-', label='pretrain_loss')
@@ -95,7 +94,6 @@ def pretrain_gae(model, adj, x, y):
         total_loss.append(loss.data.cpu().tolist())
         torch.save(model.state_dict(), "{}_gae.pkl".format(savepath))
 
-    print(acc_list)
     print(max(acc_list))
     xrange = range(0, 50)
     plt.plot(xrange, total_loss, 'o-', label='pretrain_loss')
@@ -109,27 +107,25 @@ def pretrain_gae(model, adj, x, y):
     plt.show()
 
 
-# np.random.seed(0)
-# torch.manual_seed(0)
-dataname = 'lfr100060'
-x = np.loadtxt('./data/{}_att2.txt'.format(dataname), dtype=float)
-y = np.loadtxt('./data/{}_label.txt'.format(dataname), dtype=int)
-y = y[:, 1] - 1     # for lfr and cite, pubmed, hhar
+dataname = 'acm'
+k = None
+
+x = np.loadtxt('data/{}.txt'.format(dataname), dtype=float)
+y = np.loadtxt('data/{}_label.txt'.format(dataname), dtype=int)
+# y = y[:, 1] - 1     # for lfr
+# y = y - 1           # for cite, pubmed, hhar
 dataset = LoadDataset(x)
 
-
 # pretrain AE
-model = AE(n_enc_1=512, n_enc_2=256,
-           n_dec_1=256, n_dec_2=512,
-           n_input=x.shape[1], n_z=64)
+model = AE(n_enc_1=512, n_dec_1=512, n_input=x.shape[1], n_z=64)
 print(model)
 pretrain_ae(model, dataset, y)
 
 # pretrain GAE
-adj, _ = load_data()
-data = torch.Tensor(dataset.x)
+adj, data, _ = load_graph(dataname, k)
+data = torch.Tensor(data)
 
-model = GAE(hidden_dim1=256, input_feat_dim=x.shape[1], n_z=64)
+model = GAE(hidden_dim1=512, input_feat_dim=x.shape[1], n_z=64)
 print(model)
 pretrain_gae(model, adj, data, y)
 
