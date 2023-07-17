@@ -3,13 +3,13 @@ Implementation for DCP-DEC model.
 
 Paper: Deep Embedded Clustering with Distribution Consistency Preservation for Attributed Networks
 
-The first round of reviews of this paper has been completed, and the revised version is being processed.
+This paper has been accepted by Pattern Recognition.
 
 # Data
-Due to the limitation of file size, we give some examples of the real-word datasets (ACM and USPS) and the generated artificial attributed networks (μ=0.6 and μ=0.8 with noise ratio 20%).
+Due to the limitation of file size, we give some examples of the real-word datasets (ACM and USPS) and the generated artificial attributed networks (μ=0.6 and μ=0.8 with a noise ratio of 20%).
 
 # Code & Usage
-Here we provide an implementation in PyTorch, along with execution examples on real and artificial (with μ=0.6 & noise ratio is 20%) attributed networks. The repository is organised as follows:
+Here we provide an implementation in PyTorch, along with execution examples on real and artificial (with μ=0.6 & noise ratio is 20%) attributed networks. The repository is organized as follows:
 
 runDCP.py: main process to train the model for real-world networks.
 
@@ -55,6 +55,6 @@ D. Bo, X. Wang, C. Shi, et al. Structural Deep Clustering Network. In WWW, 2020.
 
 --https://github.com/bdy9527/SDCN
 
-W. Tu, S. Zhou, X. Liu, X. Guo, Z. Cai, E. zhu, and J. Cheng. In AAAI 2021.
+W. Tu, S. Zhou, X. Liu, X. Guo, Z. Cai, E. Zhu, and J. Cheng. In AAAI 2021.
 
 --https://github.com/WxTu/DFCN
