@@ -16,14 +16,25 @@ import numpy as np
 
 
 class DCP_DEC(nn.Module):
+    '''
+    n_enc_1: 编码器第一层的神经元数量。
+    n_dec_1: 解码器第一层的神经元数量。
+    n_input: 输入特征的维度。
+    n_z: 潜在空间（编码后的特征表示）的维度。
+    n_clusters: 聚类任务中的簇数量。
+    v: 一个可选参数，默认值为1，可能与网络的某些操作相关。
+    '''
     def __init__(self, n_enc_1, n_dec_1, n_input, n_z,
                  n_clusters, v=1):
         super(DCP_DEC, self).__init__()
 
         # autoencoder for intra information
+        '''创建一个自编码器实例 ae'''
         self.ae = AE(n_enc_1=n_enc_1, n_dec_1=n_dec_1, n_input=n_input, n_z=n_z)
+        '''加载预训练的自编码器模型权重'''
         self.ae.load_state_dict(torch.load(args.dnn_pretrain_path, map_location='cpu'))
         # cluster layer
+        '''定义了一个可学习的参数 dnn_cluster_layer'''
         self.dnn_cluster_layer = Parameter(torch.Tensor(n_clusters, n_z))
         torch.nn.init.xavier_normal_(self.dnn_cluster_layer.data)
 
@@ -125,6 +136,8 @@ def train_dcp(model, adj, data, y):
 
 
 if __name__ == "__main__":
+    #使用了 Python 的 argparse 模块来定义命令行接口，用于解析运行脚本时提供的命令行参数。
+    #创建一个 ArgumentParser 对象
     parser = argparse.ArgumentParser(description='train',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--name', type=str, default='acm')
@@ -132,12 +145,15 @@ if __name__ == "__main__":
     parser.add_argument('--k', type=int, default=None)
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--epochs', type=int, default=500)
+    #潜在空间的维度
     parser.add_argument('--n_z', default=64, type=int)
+    #预训练模型
     parser.add_argument('--pretrain_path', type=str, default='pkl')
     parser.add_argument('--alpha', type=float, default=1)
     parser.add_argument('--beta', type=float, default=1)
     parser.add_argument('--gamma', type=float, default=1)
     parser.add_argument('--rae', type=int, default=1)
+    #解析命令行输入的参数，并将解析后的参数赋值给 args 变量。parse_args 方法会从 sys.argv 中获取命令行参数，并根据前面定义的规则进行解析。
     args = parser.parse_args()
     print(args)
 
@@ -155,7 +171,9 @@ if __name__ == "__main__":
     adj, feature, label = load_graph(args.name, args.k)
     adj = adj.to(device)
     feature = torch.FloatTensor(feature).to(device)
+    #设置输入特征的维度 n_input，它是特征矩阵的第二维度（列数），代表每个节点的特征数量。
     n_input = feature.shape[1]
+    #如果所有的类别标签都是连续的，并且从0开始，那么通过计算 label 向量中的最大值并加1是一种快速简便的方法来确定类别的总数
     n_clusters = label.max() + 1
 
     model = DCP_DEC(512, 512, n_input=n_input, n_z=args.n_z, n_clusters=n_clusters, v=1).to(device)
