@@ -7,7 +7,12 @@ from layers import GraphConvolution
 
 
 class AE(nn.Module):
-
+    '''
+    n_enc_1: 第一层编码器的输出维度。
+    n_dec_1: 第一层解码器的输出维度。
+    n_input: 输入数据的维度。
+    n_z: 编码器输出的潜在表示（也称为瓶颈层或编码层）的维度。
+    '''
     def __init__(self, n_enc_1, n_dec_1,
                  n_input, n_z):
         super(AE, self).__init__()
